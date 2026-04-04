@@ -399,11 +399,12 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
 
   <!-- 사전 -->
   <div class="screen" id="scr-dict">
-    <div class="topbar">
-      <div class="topbar-title">용어사전</div>
-      <div class="topbar-sub">PDF 원문 그대로</div>
-    </div>
-    <div class="dict-list-panel">
+    <!-- 목록 뷰 -->
+    <div id="dict-list-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="topbar">
+        <div class="topbar-title">용어사전</div>
+        <div class="topbar-sub">PDF 원문 그대로</div>
+      </div>
       <div class="search-bar">
         <div class="search-wrap">
           <span class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
@@ -411,21 +412,18 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
           <button class="search-clear" id="search-clear">✕</button>
         </div>
       </div>
-      <div class="dict-content-area">
+      <div class="dict-content-area" style="flex:1;display:flex;overflow:hidden">
         <div class="term-list" id="term-list"><div class="loading">데이터 로딩 중...</div></div>
         <div class="cons-sidebar" id="cons-sidebar"></div>
       </div>
     </div>
-    <div class="dict-layout">
-      <div class="dict-detail-panel" id="detail-panel">
-        <div class="detail-header">
-          <button class="back-btn" id="back-btn">← 목록</button>
-          <div class="detail-header-term" id="detail-header-term"></div>
-        </div>
-        <div class="detail-scroll" id="detail-scroll">
-          <div class="no-result">용어를 선택하세요</div>
-        </div>
+    <!-- 상세 뷰 — 전체 화면 전환 -->
+    <div id="dict-detail-view" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="detail-header">
+        <button class="back-btn" id="back-btn">← 목록</button>
+        <div class="detail-header-term" id="detail-header-term"></div>
       </div>
+      <div class="detail-scroll" id="detail-scroll"></div>
     </div>
   </div>
 
@@ -906,9 +904,9 @@ function initDict(){
 
   // 스와이프 뒤로가기
   let touchX=0;
-  const dp=document.getElementById('detail-panel');
-  dp.addEventListener('touchstart',e=>{ touchX=e.touches[0].clientX; },{passive:true});
-  dp.addEventListener('touchend',e=>{
+  const dv=document.getElementById('dict-detail-view');
+  dv.addEventListener('touchstart',e=>{ touchX=e.touches[0].clientX; },{passive:true});
+  dv.addEventListener('touchend',e=>{
     if(e.changedTouches[0].clientX - touchX > 60) closeDetail();
   },{passive:true});
 
@@ -972,19 +970,20 @@ function openDetail(term){
     </div>
   `;
   ds.scrollTop=0;
-  document.getElementById('detail-panel').classList.add('open');
-
-  // history push (스와이프 뒤로가기용)
-  if(window.innerWidth<720) history.pushState({detail:term},'');
+  // 목록 숨기고 상세 표시
+  document.getElementById('dict-list-view').style.display='none';
+  document.getElementById('dict-detail-view').style.display='flex';
+  history.pushState({detail:term},'');
 }
 
 function closeDetail(){
-  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('dict-detail-view').style.display='none';
+  document.getElementById('dict-list-view').style.display='flex';
   curDetailTerm='';
 }
 
 window.addEventListener('popstate',()=>{
-  if(document.getElementById('detail-panel').classList.contains('open')) closeDetail();
+  if(document.getElementById('dict-detail-view').style.display==='flex') closeDetail();
 });
 
 // ═══════════════════════════════════════════
