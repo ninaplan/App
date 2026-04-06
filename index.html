@@ -23,8 +23,8 @@ input{font-family:inherit}
 /* ── CSS 변수 ── */
 :root{
   --bg:#f8f8f8;--card:#fff;
-  --gray1:#f0f0f0;--gray2:#e0e0e0;--gray3:#c8c8c8;
-  --gray4:#a0a0a0;--gray5:#686868;--gray6:#333;--black:#111;
+  --gray1:#e8e8e8;--gray2:#cccccc;--gray3:#aaaaaa;
+  --gray4:#888888;--gray5:#555555;--gray6:#222;--black:#111;
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
   --tab-h:64px
@@ -59,10 +59,10 @@ input{font-family:inherit}
 .topbar{
   background:#fff;border-bottom:1px solid var(--gray2);
   padding:calc(14px + var(--safe-t)) 18px 14px;
-  flex-shrink:0
+  flex-shrink:0;text-align:center
 }
 .topbar-title{font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.5px}
-.topbar-sub{font-size:13px;color:var(--gray4);margin-top:3px}
+.topbar-sub{font-size:12px;color:var(--gray4);margin-top:3px}
 
 /* ════════════════════════════
    학습 탭
@@ -111,9 +111,9 @@ input{font-family:inherit}
   padding:18px;margin-bottom:10px;background:#fff;
   cursor:pointer;transition:border-color .15s
 }
-.term-item.studied{border-color:var(--gray3);background:var(--gray1)}
+.term-item.studied{border-color:var(--gray5);background:var(--gray1);opacity:.75}
 .term-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
-.term-name{font-size:20px;font-weight:800;color:var(--black)}
+.term-name{font-size:18px;font-weight:800;color:var(--black)}
 .term-cat{font-size:12px;color:var(--gray4);background:var(--gray1);padding:3px 9px;border-radius:20px}
 .term-def{
   font-size:17px;line-height:1.8;color:var(--gray6);
@@ -133,7 +133,7 @@ input{font-family:inherit}
   border-radius:8px;padding:7px 16px;
   border:1.5px solid var(--gray3);color:var(--gray5)
 }
-.studied-btn.done{background:var(--gray6);color:#fff;border-color:var(--gray6)}
+.studied-btn.done{background:var(--gray6);color:#fff;border-color:var(--gray6);font-size:15px}
 .studied-btn:active{opacity:.8}
 
 /* 완료 배너 */
@@ -385,7 +385,7 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
   <!-- 학습 -->
   <div class="screen active" id="scr-learn">
     <div class="topbar">
-      <div class="topbar-title">경제금융용어 800선</div>
+      <div class="topbar-title">갱디's 경제금융용어</div>
       <div class="topbar-sub">한국은행 경제교육실 2026</div>
     </div>
     <div class="scroll-area"><div class="learn-inner" id="learn-inner"><div class="loading">데이터 로딩 중...</div></div></div>
@@ -403,7 +403,7 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
     <div id="dict-list-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="topbar">
         <div class="topbar-title">용어사전</div>
-        <div class="topbar-sub">PDF 원문 그대로</div>
+        <div class="topbar-sub">출처: 경제금융용어 800선</div>
       </div>
       <div class="search-bar">
         <div class="search-wrap">
@@ -449,7 +449,7 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
 // 전역 상태
 // ═══════════════════════════════════════════
 let DATA = [];          // data.json 전체
-let STUDY_DATA = [];    // def 있는 용어만
+let STUDY_DATA = [];    // 전체 용어
 let TMAP = {};          // term → index
 
 // localStorage 키
@@ -469,7 +469,7 @@ async function loadData(){
   const res = await fetch('./data.json');
   DATA = await res.json();
   DATA.forEach((t,i)=>{ TMAP[t.term]=i; });
-  STUDY_DATA = DATA.filter(t=>t.def); // data.json에 def가 모두 있으므로 전체 789개 포함
+  STUDY_DATA = DATA; // 전체 789개 사용
   initAll();
 }
 
@@ -589,7 +589,7 @@ function renderLearn(){
         </div>
         <div class="term-actions" id="act-${idx(t.term)}">
           <button class="dict-link-btn" data-dict="${esc(t.term)}">사전 보기</button>
-          <button class="studied-btn${p[t.term]?' done':''}" data-mark="${esc(t.term)}">${p[t.term]?'완료':'학습 완료'}</button>
+          <button class="studied-btn${p[t.term]?' done':''}" data-mark="${esc(t.term)}">${p[t.term]?'✓ 완료':'학습 완료'}</button>
         </div>
       </div>`).join('')}
   </div>
