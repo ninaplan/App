@@ -469,7 +469,7 @@ async function loadData(){
   const res = await fetch('./data.json');
   DATA = await res.json();
   DATA.forEach((t,i)=>{ TMAP[t.term]=i; });
-  STUDY_DATA = DATA.filter(t=>t.def);
+  STUDY_DATA = DATA.filter(t=>t.def); // data.json에 def가 모두 있으므로 전체 789개 포함
   initAll();
 }
 
@@ -957,17 +957,7 @@ function openDetail(term){
   const desc=(t.desc||'').replace(/\n/g,'<br>');
   ds.innerHTML=`
     <div class="detail-term">${t.term}</div>
-    ${t.def?`
-    <div class="detail-section">
-      <div class="detail-section-label">핵심 요약</div>
-      <div class="detail-desc" style="font-size:18px;color:var(--black);background:var(--gray1);padding:16px;border-radius:12px">${t.def.split('\n').join('<br>')}</div>
-    </div>
-    <div class="detail-divider"></div>
-    `:''}
-    <div class="detail-section">
-      <div class="detail-section-label">전체 설명 (PDF 원문)</div>
-      <div class="detail-desc">${desc}</div>
-    </div>
+    <div class="detail-desc">${desc}</div>
   `;
   ds.scrollTop=0;
   // 목록 숨기고 상세 표시
