@@ -80,9 +80,9 @@ input{font-family:inherit}
 .setting-sub{font-size:13px;color:var(--gray4);margin-top:2px}
 .seg-ctrl{display:flex;background:var(--gray1);border-radius:10px;padding:3px;gap:2px}
 .seg-btn{
-  flex:1;padding:8px 6px;border-radius:8px;
-  font-size:14px;font-weight:600;color:var(--gray5);
-  transition:all .15s
+  flex:1;padding:8px 4px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--gray5);
+  transition:all .15s;white-space:nowrap
 }
 .seg-btn.on{background:#fff;color:var(--black);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .days-input-row{display:flex;align-items:center;gap:10px}
@@ -112,9 +112,18 @@ input{font-family:inherit}
   cursor:pointer;transition:border-color .15s
 }
 .term-item.studied{border-color:var(--gray5);background:var(--gray1);opacity:.75}
-.term-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
-.term-name{font-size:18px;font-weight:800;color:var(--black)}
-.term-cat{font-size:12px;color:var(--gray4);background:var(--gray1);padding:3px 9px;border-radius:20px}
+.term-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:0}
+.term-name{font-size:18px;font-weight:800;color:var(--black);flex:1;word-break:keep-all}
+.term-cat{font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:3px;font-weight:600}
+.cat-거시경제{background:#e8e8e8;color:#444}
+.cat-금융시장{background:#dde8f0;color:#2d5a7a}
+.cat-통화정책{background:#e0dff0;color:#4a3d8a}
+.cat-금융안정{background:#f0e0de;color:#8a3d3a}
+.cat-국제경제{background:#dff0e4;color:#2d6b45}
+.cat-금융제도{background:#f0ece0;color:#7a6020}
+.cat-지급결제{background:#e8f0e0;color:#4a6a2a}
+.cat-재정{background:#f0e8e0;color:#7a4a20}
+.cat-기타{background:#e8e8e8;color:#555}
 .term-def{
   font-size:17px;line-height:1.8;color:var(--gray6);
   margin-top:12px;display:none;word-break:keep-all
@@ -136,7 +145,17 @@ input{font-family:inherit}
 .studied-btn.done{background:var(--gray6);color:#fff;border-color:var(--gray6);font-size:15px}
 .studied-btn:active{opacity:.8}
 
-/* 완료 배너 */
+/* 카테고리 선택 패널 */
+.cat-select-panel{
+  margin-top:12px;display:none;flex-wrap:wrap;gap:8px
+}
+.cat-select-panel.open{display:flex}
+.cat-chip{
+  padding:7px 14px;border-radius:20px;font-size:13px;font-weight:700;
+  border:2px solid transparent;cursor:pointer;transition:all .15s;opacity:.6
+}
+.cat-chip.on{opacity:1;border-color:var(--black)}
+.cat-chip:active{opacity:.8}
 .done-banner{
   background:var(--gray6);color:#fff;border-radius:16px;
   padding:22px 20px;text-align:center;margin-bottom:14px
@@ -491,7 +510,7 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 // 설정 로드/저장
 // ═══════════════════════════════════════════
 function getSettings(){
-  return Object.assign({days:30, order:'freq', quizMode:'random'}, lsGet(LS.settings)||{});
+  return Object.assign({days:30, order:'freq', quizMode:'random', selectedCat:'all'}, lsGet(LS.settings)||{});
 }
 function saveSettings(s){ lsSet(LS.settings, s); }
 function getProgress(){ return lsGet(LS.progress)||{}; }
@@ -506,7 +525,11 @@ function unmarkStudied(term){
 // 커리큘럼 계산
 // ═══════════════════════════════════════════
 function getOrderedTerms(order){
-  const terms = [...STUDY_DATA];
+  const s = getSettings();
+  let terms = [...STUDY_DATA];
+  if(order==='cat' && s.selectedCat && s.selectedCat!=='all'){
+    terms = terms.filter(t=>t.cat===s.selectedCat);
+  }
   if(order==='freq') return terms.sort((a,b)=>a.freq-b.freq||a.term.localeCompare(b.term,'ko'));
   if(order==='alpha') return terms.sort((a,b)=>a.term.localeCompare(b.term,'ko'));
   if(order==='cat'){
@@ -545,13 +568,12 @@ function getTodayDayIdx(curriculum){
 // ═══════════════════════════════════════════
 function renderLearn(){
   const s = getSettings();
+  const CAT_LIST = ['거시경제','금융시장','통화정책','금융안정','국제경제','금융제도','지급결제','재정'];
   const curriculum = getCurriculum(s.days, s.order);
   const dayIdx = getTodayDayIdx(curriculum);
-  const day = curriculum[dayIdx];
+  const day = curriculum[dayIdx]||curriculum[0];
   const p = getProgress();
   const totalStudied = STUDY_DATA.filter(t=>p[t.term]).length;
-
-  const orderLabels = {freq:'빈도순', alpha:'가나다순', cat:'카테고리순'};
 
   let html = `
   <div class="setting-card">
@@ -563,7 +585,11 @@ function renderLearn(){
         <button class="seg-btn${s.order==='cat'?' on':''}" data-order="cat">카테고리</button>
       </div>
     </div>
-    <div class="setting-row">
+    <div class="cat-select-panel${s.order==='cat'?' open':''}" id="cat-panel">
+      <button class="cat-chip cat-기타${(!s.selectedCat||s.selectedCat==='all')?' on':''}" data-cat="all">전체</button>
+      ${CAT_LIST.map(c=>`<button class="cat-chip cat-${c}${s.selectedCat===c?' on':''}" data-cat="${c}">${c}</button>`).join('')}
+    </div>
+    <div class="setting-row" style="margin-top:${s.order==='cat'?'14px':'0'};margin-bottom:0">
       <div><div class="setting-label">커리큘럼</div></div>
       <div class="days-input-row">
         <input class="days-input" id="days-input" type="number" min="1" max="365" value="${s.days}">
@@ -582,11 +608,9 @@ function renderLearn(){
       <div class="term-item${p[t.term]?' studied':''}" data-term="${esc(t.term)}">
         <div class="term-item-header">
           <div class="term-name">${t.term}</div>
-          <div class="term-cat">${t.cat}</div>
+          <div class="term-cat cat-${t.cat}">${t.cat}</div>
         </div>
-        <div class="term-def" id="def-${idx(t.term)}">
-          ${t.def.split('\n').map((l,i)=>`<span class="${i>0?'term-def-line2':''}">${l}</span>`).join('<br>')}
-        </div>
+        <div class="term-def" id="def-${idx(t.term)}">${t.def||''}</div>
         <div class="term-actions" id="act-${idx(t.term)}">
           <button class="dict-link-btn" data-dict="${esc(t.term)}">사전 보기</button>
           <button class="studied-btn${p[t.term]?' done':''}" data-mark="${esc(t.term)}">${p[t.term]?'✓ 완료':'학습 완료'}</button>
@@ -616,6 +640,13 @@ function renderLearn(){
   document.querySelectorAll('.seg-btn[data-order]').forEach(b=>{
     b.addEventListener('click',()=>{
       const s2=getSettings(); s2.order=b.dataset.order; saveSettings(s2); renderLearn();
+    });
+  });
+
+  // 카테고리 선택
+  document.querySelectorAll('.cat-chip[data-cat]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const s2=getSettings(); s2.selectedCat=b.dataset.cat; saveSettings(s2); renderLearn();
     });
   });
   const di = document.getElementById('days-input');
