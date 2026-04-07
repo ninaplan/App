@@ -113,7 +113,7 @@ input{font-family:inherit}
 }
 .term-item.studied{border-color:var(--gray5);background:var(--gray1);opacity:.75}
 .term-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:0}
-.term-name{font-size:18px;font-weight:800;color:var(--black);flex:1;word-break:keep-all}
+.term-name{font-size:18px;font-weight:800;color:var(--black);flex:1;word-break:break-word}
 .term-cat{font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:3px;font-weight:600}
 .cat-거시경제{background:#e8e8e8;color:#444}
 .cat-금융시장{background:#dde8f0;color:#2d5a7a}
@@ -126,7 +126,7 @@ input{font-family:inherit}
 .cat-기타{background:#e8e8e8;color:#555}
 .term-def{
   font-size:17px;line-height:1.8;color:var(--gray6);
-  margin-top:12px;display:none;word-break:keep-all
+  margin-top:12px;display:none;word-break:break-word
 }
 .term-def.open{display:block}
 .term-def-line2{color:var(--gray5)}
@@ -214,8 +214,8 @@ input{font-family:inherit}
   color:var(--gray4);background:var(--gray1);
   padding:4px 12px;border-radius:20px;margin-bottom:14px
 }
-.quiz-question{font-size:20px;font-weight:800;line-height:1.5;color:var(--black);word-break:keep-all}
-.quiz-desc{font-size:17px;line-height:1.8;color:var(--gray6);margin-top:10px;word-break:keep-all}
+.quiz-question{font-size:20px;font-weight:800;line-height:1.5;color:var(--black);word-break:break-word}
+.quiz-desc{font-size:17px;line-height:1.8;color:var(--gray6);margin-top:10px;word-break:break-word}
 
 .choices{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .choice-btn{
@@ -223,7 +223,7 @@ input{font-family:inherit}
   padding:16px 18px;font-size:17px;color:var(--black);
   text-align:left;line-height:1.5;
   display:flex;align-items:center;gap:14px;
-  transition:border-color .15s;word-break:keep-all
+  transition:border-color .15s;word-break:break-word
 }
 .choice-btn:active:not([disabled]){background:var(--gray1)}
 .choice-num{
@@ -246,7 +246,7 @@ input{font-family:inherit}
 .feedback-result.ok{color:#333}
 .feedback-result.ng{color:#888}
 .feedback-answer{font-size:15px;color:var(--gray5);margin-bottom:10px;font-weight:600}
-.feedback-def{font-size:16px;line-height:1.8;color:var(--gray6);word-break:keep-all}
+.feedback-def{font-size:16px;line-height:1.8;color:var(--gray6);word-break:break-word}
 
 .next-btn{
   width:100%;padding:18px;border-radius:14px;
@@ -283,7 +283,7 @@ input{font-family:inherit}
   padding:16px 18px;margin-bottom:8px
 }
 .wrong-term{font-size:17px;font-weight:800;color:var(--black);margin-bottom:6px}
-.wrong-def{font-size:15px;line-height:1.7;color:var(--gray5);word-break:keep-all}
+.wrong-def{font-size:15px;line-height:1.7;color:var(--gray5);word-break:break-word}
 
 /* ════════════════════════════
    사전 탭
@@ -350,7 +350,7 @@ input{font-family:inherit}
 }
 .term-row:active{background:var(--gray1)}
 .term-row-name{font-size:19px;font-weight:700;color:var(--black);margin-bottom:4px}
-.term-row-preview{font-size:14px;color:var(--gray4);line-height:1.5;word-break:keep-all}
+.term-row-preview{font-size:14px;color:var(--gray4);line-height:1.5;word-break:break-word}
 mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
 .no-result{padding:60px 20px;text-align:center;color:var(--gray3);font-size:17px}
 
@@ -377,13 +377,13 @@ mark{background:#e8e8e8;color:var(--black);border-radius:2px;padding:0 1px}
 }
 .detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 18px 60px}
 .detail-scroll::-webkit-scrollbar{display:none}
-.detail-term{font-size:28px;font-weight:900;color:var(--black);letter-spacing:-.5px;margin-bottom:20px;word-break:keep-all}
+.detail-term{font-size:28px;font-weight:900;color:var(--black);letter-spacing:-.5px;margin-bottom:20px;word-break:break-word}
 .detail-section{margin-bottom:24px}
 .detail-section-label{
   font-size:11px;font-weight:800;color:var(--gray3);
   letter-spacing:.8px;margin-bottom:10px
 }
-.detail-desc{font-size:17px;line-height:2.0;color:var(--gray6);white-space:pre-wrap;word-break:keep-all}
+.detail-desc{font-size:17px;line-height:2.0;color:var(--gray6);word-break:break-word}
 .detail-divider{height:1px;background:var(--gray2);margin:20px 0}
 
 /* 데스크탑 */
