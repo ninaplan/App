@@ -704,19 +704,22 @@ function renderQuizHome(){
   const wrongTerms = STUDY_DATA.filter(t=>wrongMap[t.term]);
   const allTerms = STUDY_DATA;
 
-  const poolMap = {
-    'all': allTerms,
-    'studied': studied,
-    'wrong': wrongTerms
-  };
+  const poolMap = {'all':allTerms,'studied':studied,'wrong':wrongTerms};
   const pool = poolMap[s.quizMode]||allTerms;
   const canQuiz = pool.length >= 4;
   QS = null;
   document.getElementById('quiz-header-wrap').innerHTML='';
 
+  const typeDesc = {
+    'both':'용어→뜻, 뜻→용어 두 가지 유형이 랜덤으로 섞여 출제됩니다.',
+    'term2def':'용어를 보고 알맞은 뜻을 고르는 문제만 출제됩니다.',
+    'def2term':'뜻을 보고 알맞은 용어를 고르는 문제만 출제됩니다.'
+  };
+
   document.getElementById('quiz-inner').innerHTML=`
+  <div style="height:24px"></div>
   <div class="quiz-setting-card">
-    <div class="setting-row" style="margin-bottom:14px">
+    <div class="setting-row" style="margin-bottom:18px">
       <div><div class="setting-label">출제 범위</div></div>
       <div class="seg-ctrl">
         <button class="seg-btn${s.quizMode==='all'?' on':''}" data-qmode="all">전체</button>
@@ -724,7 +727,7 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizMode==='wrong'?' on':''}" data-qmode="wrong">틀린문제</button>
       </div>
     </div>
-    <div class="setting-row" style="margin-bottom:14px">
+    <div class="setting-row" style="margin-bottom:20px">
       <div><div class="setting-label">문제 유형</div></div>
       <div class="seg-ctrl">
         <button class="seg-btn${s.quizType==='both'?' on':''}" data-qtype="both">혼합</button>
@@ -732,7 +735,7 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizType==='def2term'?' on':''}" data-qtype="def2term">뜻→용어</button>
       </div>
     </div>
-    <div class="quiz-stat-row">
+    <div class="quiz-stat-row" style="margin-bottom:20px">
       <div class="quiz-stat">
         <div class="quiz-stat-n">${allTerms.length}</div>
         <div class="quiz-stat-l">전체</div>
@@ -747,11 +750,11 @@ function renderQuizHome(){
       </div>
     </div>
     <button class="start-quiz-btn" id="start-quiz-btn" ${canQuiz?'':'disabled'}>
-      ${canQuiz?`퀴즈 시작 (랜덤 10개)`:'문제가 부족합니다 (최소 4개)'}
+      ${canQuiz?'퀴즈 시작 (랜덤 10개)':'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
-  <div style="padding:8px 2px;font-size:14px;color:var(--gray4);line-height:1.7">
-    용어→뜻, 뜻→용어 두 가지 유형이 섞여 랜덤 출제됩니다.<br>
+  <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8">
+    ${typeDesc[s.quizType]||typeDesc['both']}<br>
     틀린 문제는 자동으로 저장되어 다시 풀 수 있습니다.
   </div>
   `;
