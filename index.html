@@ -257,6 +257,36 @@ input{font-family:inherit}
 .next-btn.open{display:block}
 .next-btn:active{opacity:.75}
 
+/* 플래시카드 */
+.fc-wrap{perspective:1000px;width:100%;margin-bottom:20px}
+.fc-inner{
+  position:relative;width:100%;min-height:260px;
+  transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);cursor:pointer
+}
+.fc-inner.flipped{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  background:#fff;border-radius:20px;border:1.5px solid var(--gray2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:28px 24px;text-align:center
+}
+.fc-back{transform:rotateY(180deg)}
+.fc-label{font-size:12px;font-weight:700;color:var(--gray3);letter-spacing:.8px;margin-bottom:14px}
+.fc-term{font-size:24px;font-weight:900;color:var(--black);line-height:1.4;word-break:break-word}
+.fc-def{font-size:16px;line-height:1.9;color:var(--gray6);word-break:break-word}
+.fc-hint{font-size:13px;color:var(--gray3);margin-top:16px}
+.fc-btns{display:flex;gap:12px;margin-bottom:14px}
+.fc-btn{
+  flex:1;padding:16px;border-radius:14px;font-size:17px;font-weight:800;
+  border:1.5px solid transparent;transition:opacity .15s
+}
+.fc-btn:active{opacity:.75}
+.fc-btn.know{background:var(--black);color:#fff}
+.fc-btn.dontknow{background:var(--gray1);color:var(--gray6);border-color:var(--gray2)}
+.fc-counter{text-align:center;font-size:14px;color:var(--gray4);margin-bottom:8px}
+.fc-progress{height:4px;background:var(--gray1);border-radius:99px;margin-bottom:20px;overflow:hidden}
+.fc-progress-fill{height:100%;background:var(--gray6);border-radius:99px;transition:width .3s}
+
 /* 결과 */
 .result-card{
   background:#fff;border-radius:16px;border:1px solid var(--gray2);
@@ -511,7 +541,7 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 // 설정 로드/저장
 // ═══════════════════════════════════════════
 function getSettings(){
-  return Object.assign({days:30, order:'freq', quizMode:'all', quizType:'both', selectedCat:'all'}, lsGet(LS.settings)||{});
+  return Object.assign({days:30, order:'freq', quizMode:'all', quizType:'both', quizFormat:'choice', selectedCat:'all'}, lsGet(LS.settings)||{});
 }
 function saveSettings(s){ lsSet(LS.settings, s); }
 function getProgress(){ return lsGet(LS.progress)||{}; }
@@ -715,10 +745,18 @@ function renderQuizHome(){
     'term2def':'용어를 보고 알맞은 뜻을 고르는 문제만 출제됩니다.',
     'def2term':'뜻을 보고 알맞은 용어를 고르는 문제만 출제됩니다.'
   };
+  const fcDesc = '카드를 탭하면 뒤집혀 답이 나옵니다. 알았어요/몰랐어요로 넘기세요.';
 
   document.getElementById('quiz-inner').innerHTML=`
   <div style="height:24px"></div>
   <div class="quiz-setting-card">
+    <div class="setting-row" style="margin-bottom:18px">
+      <div><div class="setting-label">출제 방식</div></div>
+      <div class="seg-ctrl">
+        <button class="seg-btn${s.quizFormat==='choice'?' on':''}" data-qfmt="choice">보기형</button>
+        <button class="seg-btn${s.quizFormat==='flash'?' on':''}" data-qfmt="flash">플래시카드</button>
+      </div>
+    </div>
     <div class="setting-row" style="margin-bottom:18px">
       <div><div class="setting-label">출제 범위</div></div>
       <div class="seg-ctrl">
@@ -727,6 +765,7 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizMode==='wrong'?' on':''}" data-qmode="wrong">틀린문제</button>
       </div>
     </div>
+    ${s.quizFormat!=='flash'?`
     <div class="setting-row" style="margin-bottom:20px">
       <div><div class="setting-label">문제 유형</div></div>
       <div class="seg-ctrl">
@@ -734,7 +773,7 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizType==='term2def'?' on':''}" data-qtype="term2def">용어→뜻</button>
         <button class="seg-btn${s.quizType==='def2term'?' on':''}" data-qtype="def2term">뜻→용어</button>
       </div>
-    </div>
+    </div>`:'<div style="height:6px"></div>'}
     <div class="quiz-stat-row" style="margin-bottom:20px">
       <div class="quiz-stat">
         <div class="quiz-stat-n">${allTerms.length}</div>
@@ -750,15 +789,20 @@ function renderQuizHome(){
       </div>
     </div>
     <button class="start-quiz-btn" id="start-quiz-btn" ${canQuiz?'':'disabled'}>
-      ${canQuiz?'퀴즈 시작 (랜덤 10개)':'문제가 부족합니다 (최소 4개)'}
+      ${canQuiz?(s.quizFormat==='flash'?'플래시카드 시작':'퀴즈 시작 (랜덤 10개)'):'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
   <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8">
-    ${typeDesc[s.quizType]||typeDesc['both']}<br>
+    ${s.quizFormat==='flash'?fcDesc:(typeDesc[s.quizType]||typeDesc['both'])}<br>
     틀린 문제는 자동으로 저장되어 다시 풀 수 있습니다.
   </div>
   `;
 
+  document.querySelectorAll('.seg-btn[data-qfmt]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const s2=getSettings(); s2.quizFormat=b.dataset.qfmt; saveSettings(s2); renderQuizHome();
+    });
+  });
   document.querySelectorAll('.seg-btn[data-qmode]').forEach(b=>{
     b.addEventListener('click',()=>{
       const s2=getSettings(); s2.quizMode=b.dataset.qmode; saveSettings(s2); renderQuizHome();
@@ -770,7 +814,11 @@ function renderQuizHome(){
     });
   });
   const startBtn = document.getElementById('start-quiz-btn');
-  if(startBtn) startBtn.addEventListener('click', startQuiz);
+  if(startBtn) startBtn.addEventListener('click',()=>{
+    const sf=getSettings();
+    if(sf.quizFormat==='flash') startFlash();
+    else startQuiz();
+  });
 }
 
 function shuffle(arr){
@@ -899,6 +947,117 @@ function nextQ(){
   QS.cur++;
   if(QS.cur>=QS.questions.length) renderQuizResult();
   else renderQuizQ();
+}
+
+// ═══════════════════════════════════════════
+// 플래시카드
+// ═══════════════════════════════════════════
+let FS = null; // 플래시카드 상태
+
+function startFlash(){
+  const s = getSettings();
+  const p = getProgress();
+  const wrongMap = lsGet(LS.wrongTerms)||{};
+  let pool;
+  if(s.quizMode==='studied') pool = STUDY_DATA.filter(t=>p[t.term]);
+  else if(s.quizMode==='wrong') pool = STUDY_DATA.filter(t=>wrongMap[t.term]);
+  else pool = [...STUDY_DATA];
+  pool = shuffle(pool).slice(0,20); // 플래시카드는 20장
+  FS = {cards:pool, cur:0, know:0, dontknow:0, flipped:false};
+  renderFlash();
+}
+
+function renderFlash(){
+  const card = FS.cards[FS.cur];
+  const total = FS.cards.length;
+  const pct = FS.cur/total*100;
+
+  document.getElementById('quiz-header-wrap').innerHTML=`
+    <div class="quiz-header">
+      <button class="quiz-cancel-btn" id="fc-cancel">취소</button>
+      <div class="quiz-step">${FS.cur+1} / ${total}</div>
+      <div class="quiz-score">알았어요 ${FS.know}</div>
+    </div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+  `;
+  document.getElementById('fc-cancel').addEventListener('click',()=>{if(confirm('플래시카드를 종료할까요?'))renderQuizHome();});
+
+  document.getElementById('quiz-inner').innerHTML=`
+    <div style="height:16px"></div>
+    <div class="fc-wrap">
+      <div class="fc-inner" id="fc-inner">
+        <div class="fc-face fc-front">
+          <div class="fc-label">용어</div>
+          <div class="fc-term">${card.term}</div>
+          <div class="fc-hint">탭해서 뜻 확인</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-label">뜻</div>
+          <div class="fc-def">${card.def||''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-btns" id="fc-btns" style="display:none">
+      <button class="fc-btn dontknow" id="fc-no">몰랐어요</button>
+      <button class="fc-btn know" id="fc-yes">알았어요</button>
+    </div>
+    <div style="text-align:center;font-size:13px;color:var(--gray3);padding:4px 0">카드를 탭하면 뒤집힙니다</div>
+  `;
+
+  // 카드 탭 → 뒤집기
+  const inner = document.getElementById('fc-inner');
+  inner.addEventListener('click',()=>{
+    if(FS.flipped) return;
+    FS.flipped = true;
+    inner.classList.add('flipped');
+    document.getElementById('fc-btns').style.display='flex';
+  });
+
+  // 알았어요
+  document.getElementById('fc-yes').addEventListener('click',()=>{
+    FS.know++;
+    nextFlash(true);
+  });
+  // 몰랐어요
+  document.getElementById('fc-no').addEventListener('click',()=>{
+    FS.dontknow++;
+    // 틀린 문제 저장
+    const wrongMap = lsGet(LS.wrongTerms)||{};
+    wrongMap[card.term] = true;
+    lsSet(LS.wrongTerms, wrongMap);
+    nextFlash(false);
+  });
+}
+
+function nextFlash(knew){
+  FS.flipped = false;
+  FS.cur++;
+  if(FS.cur >= FS.cards.length) renderFlashResult();
+  else renderFlash();
+}
+
+function renderFlashResult(){
+  document.getElementById('quiz-header-wrap').innerHTML='';
+  const total = FS.cards.length;
+  const pct = Math.round(FS.know/total*100);
+  document.getElementById('quiz-inner').innerHTML=`
+    <div style="height:16px"></div>
+    <div class="result-card">
+      <div class="result-total">${FS.know} / ${total}</div>
+      <div class="result-score">${pct}%</div>
+      <div class="result-pct">알았어요 비율</div>
+      <div class="result-stats">
+        <div class="result-stat"><div class="result-stat-n">${FS.know}</div><div class="result-stat-l">알았어요</div></div>
+        <div class="result-stat"><div class="result-stat-n">${FS.dontknow}</div><div class="result-stat-l">몰랐어요</div></div>
+      </div>
+      <div class="result-btns">
+        <button class="result-btn sec" id="fc-res-home">홈으로</button>
+        <button class="result-btn pri" id="fc-res-retry">다시 풀기</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('fc-res-home').addEventListener('click', renderQuizHome);
+  document.getElementById('fc-res-retry').addEventListener('click', startFlash);
 }
 
 function renderQuizResult(){
