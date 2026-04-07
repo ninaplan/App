@@ -511,7 +511,7 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
 // 설정 로드/저장
 // ═══════════════════════════════════════════
 function getSettings(){
-  return Object.assign({days:30, order:'freq', quizMode:'all', selectedCat:'all'}, lsGet(LS.settings)||{});
+  return Object.assign({days:30, order:'freq', quizMode:'all', quizType:'both', selectedCat:'all'}, lsGet(LS.settings)||{});
 }
 function saveSettings(s){ lsSet(LS.settings, s); }
 function getProgress(){ return lsGet(LS.progress)||{}; }
@@ -724,6 +724,14 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizMode==='wrong'?' on':''}" data-qmode="wrong">틀린문제</button>
       </div>
     </div>
+    <div class="setting-row" style="margin-bottom:14px">
+      <div><div class="setting-label">문제 유형</div></div>
+      <div class="seg-ctrl">
+        <button class="seg-btn${s.quizType==='both'?' on':''}" data-qtype="both">혼합</button>
+        <button class="seg-btn${s.quizType==='term2def'?' on':''}" data-qtype="term2def">용어→뜻</button>
+        <button class="seg-btn${s.quizType==='def2term'?' on':''}" data-qtype="def2term">뜻→용어</button>
+      </div>
+    </div>
     <div class="quiz-stat-row">
       <div class="quiz-stat">
         <div class="quiz-stat-n">${allTerms.length}</div>
@@ -751,6 +759,11 @@ function renderQuizHome(){
   document.querySelectorAll('.seg-btn[data-qmode]').forEach(b=>{
     b.addEventListener('click',()=>{
       const s2=getSettings(); s2.quizMode=b.dataset.qmode; saveSettings(s2); renderQuizHome();
+    });
+  });
+  document.querySelectorAll('.seg-btn[data-qtype]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const s2=getSettings(); s2.quizType=b.dataset.qtype; saveSettings(s2); renderQuizHome();
     });
   });
   const startBtn = document.getElementById('start-quiz-btn');
@@ -795,7 +808,13 @@ function startQuiz(){
   else pool = [...STUDY_DATA];
 
   pool = shuffle(pool);
-  const questions = pool.map((t,i)=>makeQuestion(t, pool, i%2===0?'term2def':'def2term'));
+  const questions = pool.map((t,i)=>{
+    let type;
+    if(s.quizType==='term2def') type='term2def';
+    else if(s.quizType==='def2term') type='def2term';
+    else type = i%2===0?'term2def':'def2term';
+    return makeQuestion(t, pool, type);
+  });
   QS = {questions, cur:0, score:0, wrong:[], answered:false};
   renderQuizQ();
 }
