@@ -747,7 +747,7 @@ function renderQuizHome(){
       </div>
     </div>
     <button class="start-quiz-btn" id="start-quiz-btn" ${canQuiz?'':'disabled'}>
-      ${canQuiz?'퀴즈 시작 (랜덤순)':'문제가 부족합니다 (최소 4개)'}
+      ${canQuiz?`퀴즈 시작 (랜덤 10개)`:'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
   <div style="padding:8px 2px;font-size:14px;color:var(--gray4);line-height:1.7">
@@ -807,7 +807,7 @@ function startQuiz(){
   else if(s.quizMode==='wrong') pool = STUDY_DATA.filter(t=>wrongMap[t.term]);
   else pool = [...STUDY_DATA];
 
-  pool = shuffle(pool);
+  pool = shuffle(pool).slice(0, 10);
   const questions = pool.map((t,i)=>{
     let type;
     if(s.quizType==='term2def') type='term2def';
@@ -886,7 +886,7 @@ function pickAnswer(choice){
   fb.classList.add('open');
   fb.innerHTML=`
     <div class="feedback-result ${ok?'ok':'ng'}">${ok?'정답':'오답'}</div>
-    <div class="feedback-answer">정답: ${q.term}</div>
+    ${ok?'':'<div class="feedback-answer">정답: '+q.term+'</div>'}
   `;
   document.getElementById('next-btn').classList.add('open');
   renderQuizHeader();
