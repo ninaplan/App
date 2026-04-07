@@ -628,14 +628,14 @@ function renderLearn(){
       <button class="cat-chip cat-기타${(!s.selectedCat||s.selectedCat==='all')?' on':''}" data-cat="all">전체</button>
       ${CAT_LIST.map(c=>`<button class="cat-chip cat-${c}${s.selectedCat===c?' on':''}" data-cat="${c}">${c}</button>`).join('')}
     </div>
-    <div class="setting-row" style="margin-top:${s.order==='cat'?'14px':'0'};margin-bottom:0">
+    <div class="setting-row" style="margin-top:${s.order==='cat'?'14px':'0'};margin-bottom:4px">
       <div><div class="setting-label">커리큘럼</div></div>
       <div class="days-input-row">
         <input class="days-input" id="days-input" type="number" min="1" max="365" value="${s.days}">
         <span class="days-label">일 완성</span>
-        <span style="font-size:13px;color:var(--gray4)">· 하루 약 ${Math.ceil(STUDY_DATA.length/s.days)}개</span>
       </div>
     </div>
+    <div style="font-size:13px;color:var(--gray4);text-align:right;padding-bottom:2px">하루 약 ${Math.ceil(STUDY_DATA.length/s.days)}개</div>
   </div>
 
   <div class="today-card">
@@ -644,9 +644,9 @@ function renderLearn(){
       <div class="today-progress">${totalStudied} / ${STUDY_DATA.length} 완료</div>
     </div>
     <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(totalStudied/STUDY_DATA.length*100)}%"></div></div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button id="learn-mode-list" class="seg-btn${!s.learnMode||s.learnMode==='list'?' on':''}" style="flex:1;border-radius:10px">목록형</button>
-      <button id="learn-mode-flash" class="seg-btn${s.learnMode==='flash'?' on':''}" style="flex:1;border-radius:10px">플래시카드</button>
+    <div style="display:flex;gap:8px;margin-bottom:18px">
+      <button id="learn-mode-list" style="flex:1;padding:12px;border-radius:12px;font-size:15px;font-weight:800;border:2px solid ${!s.learnMode||s.learnMode==='list'?'var(--black)':'var(--gray2)'};background:${!s.learnMode||s.learnMode==='list'?'var(--black)':'#fff'};color:${!s.learnMode||s.learnMode==='list'?'#fff':'var(--gray4)'}">목록형</button>
+      <button id="learn-mode-flash" style="flex:1;padding:12px;border-radius:12px;font-size:15px;font-weight:800;border:2px solid ${s.learnMode==='flash'?'var(--black)':'var(--gray2)'};background:${s.learnMode==='flash'?'var(--black)':'#fff'};color:${s.learnMode==='flash'?'#fff':'var(--gray4)'}">플래시카드</button>
     </div>
     ${s.learnMode==='flash'?`
     <div id="learn-flash-area">
@@ -654,7 +654,7 @@ function renderLearn(){
         <div class="fc-inner" id="lfc-inner">
           <div class="fc-face fc-front">
             <div class="fc-label">뜻</div>
-            <div class="fc-def" style="font-size:15px">${day.terms[0]?day.terms[0].def||'':''}</div>
+            <div class="fc-def" style="font-size:18px;line-height:1.8">${day.terms[0]?day.terms[0].def||'':''}</div>
             <div class="fc-hint">탭해서 용어 확인</div>
           </div>
           <div class="fc-face fc-back">
@@ -663,14 +663,11 @@ function renderLearn(){
           </div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <button id="lfc-prev" style="padding:10px 18px;border-radius:10px;background:var(--gray1);font-size:15px;font-weight:700;color:var(--gray5)">이전</button>
-        <span id="lfc-counter" style="font-size:14px;color:var(--gray4)">1 / ${day.terms.length}</span>
-        <button id="lfc-next" style="padding:10px 18px;border-radius:10px;background:var(--gray1);font-size:15px;font-weight:700;color:var(--gray5)">다음</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <button id="lfc-prev" style="padding:14px 22px;border-radius:12px;background:var(--gray1);font-size:16px;font-weight:700;color:var(--gray5);border:1.5px solid var(--gray2)">이전</button>
+        <span id="lfc-counter" style="font-size:14px;color:var(--gray4);flex-shrink:0">1 / ${day.terms.length}</span>
+        <button id="lfc-next" style="padding:14px 22px;border-radius:12px;background:var(--black);font-size:16px;font-weight:700;color:#fff;flex:1">${day.terms.length===1?'완료':'다음'}</button>
       </div>
-      <button class="studied-btn${p[day.terms[0]?day.terms[0].term:'']?' done':''}" id="lfc-mark" data-mark="${day.terms[0]?esc(day.terms[0].term):''}" style="width:100%;padding:14px;border-radius:12px;font-size:16px">
-        ${p[day.terms[0]?day.terms[0].term:'']?'✓ 완료':'학습 완료'}
-      </button>
     </div>`
     :day.terms.map(t=>`
       <div class="term-item${p[t.term]?' studied':''}" data-term="${esc(t.term)}">
@@ -739,34 +736,33 @@ function renderLearn(){
     const terms = day.terms;
     function renderLFC(){
       const t = terms[lfcIdx];
-      const p2 = getProgress();
       const inner = document.getElementById('lfc-inner');
       if(!inner) return;
-      // 앞면: 뜻, 뒷면: 용어
       inner.classList.remove('flipped');
       inner.querySelector('.fc-front .fc-def').textContent = t.def||'';
       inner.querySelector('.fc-back .fc-term').textContent = t.term;
       document.getElementById('lfc-counter').textContent = `${lfcIdx+1} / ${terms.length}`;
-      const markBtn = document.getElementById('lfc-mark');
-      markBtn.dataset.mark = t.term;
-      markBtn.className = `studied-btn${p2[t.term]?' done':''}`;
-      markBtn.textContent = p2[t.term]?'✓ 완료':'학습 완료';
-      markBtn.style.cssText='width:100%;padding:14px;border-radius:12px;font-size:16px';
+      const nextBtn = document.getElementById('lfc-next');
+      if(nextBtn) nextBtn.textContent = lfcIdx===terms.length-1?'완료':'다음';
     }
     // 카드 탭 뒤집기
     const inner = document.getElementById('lfc-inner');
     if(inner) inner.addEventListener('click',()=>inner.classList.toggle('flipped'));
     const prevBtn = document.getElementById('lfc-prev');
     const nextBtn = document.getElementById('lfc-next');
-    if(prevBtn) prevBtn.addEventListener('click',()=>{ if(lfcIdx>0){lfcIdx--;renderLFC();} });
-    if(nextBtn) nextBtn.addEventListener('click',()=>{ if(lfcIdx<terms.length-1){lfcIdx++;renderLFC();} });
-    // 완료 버튼
-    document.querySelectorAll('#lfc-mark').forEach(b=>{
-      b.addEventListener('click',()=>{
-        const t2=b.dataset.mark; const p2=getProgress();
-        if(p2[t2]) unmarkStudied(t2); else markStudied(t2);
+    if(prevBtn) prevBtn.addEventListener('click',()=>{
+      if(lfcIdx>0){ lfcIdx--; renderLFC(); }
+    });
+    if(nextBtn) nextBtn.addEventListener('click',()=>{
+      // 다음 누르면 현재 카드 학습 완료 처리
+      markStudied(terms[lfcIdx].term);
+      if(lfcIdx<terms.length-1){
+        lfcIdx++;
         renderLFC();
-      });
+      } else {
+        // 마지막 카드 → 학습 탭 새로고침
+        renderLearn();
+      }
     });
   }
 
