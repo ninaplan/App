@@ -134,7 +134,7 @@ input{font-family:inherit}
 .term-actions.open{display:flex}
 .dict-link-btn{
   font-size:14px;color:var(--gray5);border:1px solid var(--gray2);
-  border-radius:8px;padding:7px 14px;font-weight:600
+  border-radius:8px;padding:7px 14px;font-weight:600;background:#fff
 }
 .dict-link-btn:active{background:var(--gray1)}
 .studied-btn{
@@ -211,9 +211,11 @@ input{font-family:inherit}
 }
 .quiz-type-badge{
   display:inline-block;font-size:12px;font-weight:700;
-  color:var(--gray4);background:var(--gray1);
+  color:var(--gray5);background:#fff;
+  border:1.5px solid var(--gray3);
   padding:4px 12px;border-radius:20px;margin-bottom:14px
 }
+.quiz-type-badge.type-term2def{background:var(--gray1);border-color:var(--gray2);color:var(--gray4)}
 .quiz-question{font-size:20px;font-weight:800;line-height:1.5;color:var(--black);word-break:break-word}
 .quiz-desc{font-size:17px;line-height:1.8;color:var(--gray6);margin-top:10px;word-break:break-word}
 
@@ -227,14 +229,12 @@ input{font-family:inherit}
 }
 .choice-btn:active:not([disabled]){background:var(--gray1)}
 .choice-num{
-  width:32px;height:32px;border-radius:50%;background:var(--gray1);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:800;color:var(--gray5);flex-shrink:0
+  font-size:15px;font-weight:800;color:var(--gray4);flex-shrink:0;width:20px;text-align:center
 }
+.choice-btn.correct .choice-num{color:#444}
+.choice-btn.wrong .choice-num{color:#999}
 .choice-btn.correct{background:#f0f7f0;border-color:#666}
-.choice-btn.correct .choice-num{background:#444;color:#fff}
 .choice-btn.wrong{background:#fdf0f0;border-color:#aaa}
-.choice-btn.wrong .choice-num{background:#999;color:#fff}
 .choice-btn.dim{opacity:.3}
 
 .feedback-card{
@@ -835,10 +835,10 @@ function renderQuizHeader(){
 function renderQuizQ(){
   const q = QS.questions[QS.cur];
   renderQuizHeader();
-  const nums=['①','②','③','④'];
+  const nums=['1','2','3','4'];
   document.getElementById('quiz-inner').innerHTML=`
     <div class="quiz-card">
-      <div class="quiz-type-badge">${q.type==='term2def'?'용어 → 뜻 맞추기':'뜻 → 용어 맞추기'}</div>
+      <div class="quiz-type-badge${q.type==='term2def'?' type-term2def':''}">${q.type==='term2def'?'용어 → 뜻 맞추기':'뜻 → 용어 맞추기'}</div>
       <div class="quiz-question">${q.question}</div>
       ${q.hint?`<div class="quiz-desc">${q.hint}</div>`:''}
     </div>
@@ -887,7 +887,6 @@ function pickAnswer(choice){
   fb.innerHTML=`
     <div class="feedback-result ${ok?'ok':'ng'}">${ok?'정답':'오답'}</div>
     <div class="feedback-answer">정답: ${q.term}</div>
-    <div class="feedback-def">${q.fullDef.split('\n').join('<br>')}</div>
   `;
   document.getElementById('next-btn').classList.add('open');
   renderQuizHeader();
