@@ -660,13 +660,14 @@ function renderLearn(){
           <div class="fc-face fc-back">
             <div class="fc-label">용어</div>
             <div class="fc-term">${day.terms[0]?day.terms[0].term:''}</div>
+            <button class="dict-link-btn lfc-dict-btn" data-dict="${day.terms[0]?esc(day.terms[0].term):''}" style="margin-top:16px;font-size:14px">사전 보기</button>
           </div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <button id="lfc-prev" style="padding:14px 22px;border-radius:12px;background:var(--gray1);font-size:16px;font-weight:700;color:var(--gray5);border:1.5px solid var(--gray2)">이전</button>
-        <span id="lfc-counter" style="font-size:14px;color:var(--gray4);flex-shrink:0">1 / ${day.terms.length}</span>
-        <button id="lfc-next" style="padding:14px 22px;border-radius:12px;background:var(--black);font-size:16px;font-weight:700;color:#fff;flex:1">${day.terms.length===1?'완료':'다음'}</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button id="lfc-prev" style="flex:1;padding:14px;border-radius:12px;background:var(--gray1);font-size:16px;font-weight:700;color:var(--gray5);border:1.5px solid var(--gray2)">이전</button>
+        <span id="lfc-counter" style="font-size:14px;color:var(--gray4);flex-shrink:0;min-width:48px;text-align:center">1 / ${day.terms.length}</span>
+        <button id="lfc-next" style="flex:1;padding:14px;border-radius:12px;background:var(--black);font-size:16px;font-weight:700;color:#fff">${day.terms.length===1?'완료':'다음'}</button>
       </div>
     </div>`
     :day.terms.map(t=>`
@@ -741,13 +742,26 @@ function renderLearn(){
       inner.classList.remove('flipped');
       inner.querySelector('.fc-front .fc-def').textContent = t.def||'';
       inner.querySelector('.fc-back .fc-term').textContent = t.term;
+      const dictBtn = inner.querySelector('.lfc-dict-btn');
+      if(dictBtn) dictBtn.dataset.dict = t.term;
       document.getElementById('lfc-counter').textContent = `${lfcIdx+1} / ${terms.length}`;
       const nextBtn = document.getElementById('lfc-next');
       if(nextBtn) nextBtn.textContent = lfcIdx===terms.length-1?'완료':'다음';
     }
     // 카드 탭 뒤집기
     const inner = document.getElementById('lfc-inner');
-    if(inner) inner.addEventListener('click',()=>inner.classList.toggle('flipped'));
+    if(inner) inner.addEventListener('click', e=>{
+      if(e.target.closest('.lfc-dict-btn')) return;
+      inner.classList.toggle('flipped');
+    });
+    // 사전보기 버튼
+    document.querySelectorAll('.lfc-dict-btn').forEach(b=>{
+      b.addEventListener('click', e=>{
+        e.stopPropagation();
+        goTab('dict');
+        setTimeout(()=>openDetail(b.dataset.dict),100);
+      });
+    });
     const prevBtn = document.getElementById('lfc-prev');
     const nextBtn = document.getElementById('lfc-next');
     if(prevBtn) prevBtn.addEventListener('click',()=>{
@@ -867,7 +881,7 @@ function renderQuizHome(){
       ${canQuiz?'플래시카드 시작 (20장)':'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
-  <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8">
+  <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8;text-align:center">
     ${typeDesc[s.quizType]||typeDesc['both']}<br>
     틀린 문제는 자동으로 저장되어 다시 풀 수 있습니다.
   </div>
