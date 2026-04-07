@@ -186,8 +186,15 @@ input{font-family:inherit}
   font-size:18px;font-weight:800;
   transition:opacity .15s
 }
-.start-quiz-btn:active{opacity:.75}
-.start-quiz-btn:disabled{background:var(--gray3);cursor:default}
+.start-flash-btn{
+  width:100%;padding:18px;border-radius:14px;
+  background:#fff;color:var(--black);
+  border:2px solid var(--gray5);
+  font-size:18px;font-weight:800;
+  transition:opacity .15s;margin-top:10px
+}
+.start-quiz-btn:active,.start-flash-btn:active{opacity:.75}
+.start-quiz-btn:disabled,.start-flash-btn:disabled{background:var(--gray3);color:#fff;border-color:var(--gray3);cursor:default}
 
 /* 퀴즈 진행 */
 .quiz-progress-bar{height:4px;background:var(--gray1);flex-shrink:0}
@@ -745,18 +752,10 @@ function renderQuizHome(){
     'term2def':'용어를 보고 알맞은 뜻을 고르는 문제만 출제됩니다.',
     'def2term':'뜻을 보고 알맞은 용어를 고르는 문제만 출제됩니다.'
   };
-  const fcDesc = '카드를 탭하면 뒤집혀 답이 나옵니다. 알았어요/몰랐어요로 넘기세요.';
 
   document.getElementById('quiz-inner').innerHTML=`
   <div style="height:24px"></div>
   <div class="quiz-setting-card">
-    <div class="setting-row" style="margin-bottom:18px">
-      <div><div class="setting-label">출제 방식</div></div>
-      <div class="seg-ctrl">
-        <button class="seg-btn${s.quizFormat==='choice'?' on':''}" data-qfmt="choice">보기형</button>
-        <button class="seg-btn${s.quizFormat==='flash'?' on':''}" data-qfmt="flash">플래시카드</button>
-      </div>
-    </div>
     <div class="setting-row" style="margin-bottom:18px">
       <div><div class="setting-label">출제 범위</div></div>
       <div class="seg-ctrl">
@@ -765,7 +764,6 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizMode==='wrong'?' on':''}" data-qmode="wrong">틀린문제</button>
       </div>
     </div>
-    ${s.quizFormat!=='flash'?`
     <div class="setting-row" style="margin-bottom:20px">
       <div><div class="setting-label">문제 유형</div></div>
       <div class="seg-ctrl">
@@ -773,7 +771,7 @@ function renderQuizHome(){
         <button class="seg-btn${s.quizType==='term2def'?' on':''}" data-qtype="term2def">용어→뜻</button>
         <button class="seg-btn${s.quizType==='def2term'?' on':''}" data-qtype="def2term">뜻→용어</button>
       </div>
-    </div>`:'<div style="height:6px"></div>'}
+    </div>
     <div class="quiz-stat-row" style="margin-bottom:20px">
       <div class="quiz-stat">
         <div class="quiz-stat-n">${allTerms.length}</div>
@@ -788,21 +786,19 @@ function renderQuizHome(){
         <div class="quiz-stat-l">틀린 문제</div>
       </div>
     </div>
-    <button class="start-quiz-btn" id="start-quiz-btn" ${canQuiz?'':'disabled'}>
-      ${canQuiz?(s.quizFormat==='flash'?'플래시카드 시작':'퀴즈 시작 (랜덤 10개)'):'문제가 부족합니다 (최소 4개)'}
+    <button class="start-quiz-btn" id="start-quiz-btn" ${canQuiz?'':'disabled'} style="margin-bottom:10px">
+      ${canQuiz?'퀴즈 시작 (랜덤 10개)':'문제가 부족합니다 (최소 4개)'}
+    </button>
+    <button class="start-quiz-btn" id="start-flash-btn" ${canQuiz?'':'disabled'} style="background:var(--gray5)">
+      ${canQuiz?'플래시카드 시작 (20장)':'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
   <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8">
-    ${s.quizFormat==='flash'?fcDesc:(typeDesc[s.quizType]||typeDesc['both'])}<br>
+    ${typeDesc[s.quizType]||typeDesc['both']}<br>
     틀린 문제는 자동으로 저장되어 다시 풀 수 있습니다.
   </div>
   `;
 
-  document.querySelectorAll('.seg-btn[data-qfmt]').forEach(b=>{
-    b.addEventListener('click',()=>{
-      const s2=getSettings(); s2.quizFormat=b.dataset.qfmt; saveSettings(s2); renderQuizHome();
-    });
-  });
   document.querySelectorAll('.seg-btn[data-qmode]').forEach(b=>{
     b.addEventListener('click',()=>{
       const s2=getSettings(); s2.quizMode=b.dataset.qmode; saveSettings(s2); renderQuizHome();
@@ -814,11 +810,9 @@ function renderQuizHome(){
     });
   });
   const startBtn = document.getElementById('start-quiz-btn');
-  if(startBtn) startBtn.addEventListener('click',()=>{
-    const sf=getSettings();
-    if(sf.quizFormat==='flash') startFlash();
-    else startQuiz();
-  });
+  if(startBtn) startBtn.addEventListener('click', startQuiz);
+  const flashBtn = document.getElementById('start-flash-btn');
+  if(flashBtn) flashBtn.addEventListener('click', startFlash);
 }
 
 function shuffle(arr){
@@ -962,8 +956,16 @@ function startFlash(){
   if(s.quizMode==='studied') pool = STUDY_DATA.filter(t=>p[t.term]);
   else if(s.quizMode==='wrong') pool = STUDY_DATA.filter(t=>wrongMap[t.term]);
   else pool = [...STUDY_DATA];
-  pool = shuffle(pool).slice(0,20); // 플래시카드는 20장
-  FS = {cards:pool, cur:0, know:0, dontknow:0, flipped:false};
+  pool = shuffle(pool).slice(0,20);
+  // 혼합이면 카드마다 랜덤으로 유형 섞기
+  const cards = pool.map((t,i)=>{
+    let type;
+    if(s.quizType==='term2def') type='term2def';
+    else if(s.quizType==='def2term') type='def2term';
+    else type = Math.random()<0.5?'term2def':'def2term';
+    return {...t, fcType:type};
+  });
+  FS = {cards, cur:0, know:0, dontknow:0, flipped:false};
   renderFlash();
 }
 
@@ -971,6 +973,16 @@ function renderFlash(){
   const card = FS.cards[FS.cur];
   const total = FS.cards.length;
   const pct = FS.cur/total*100;
+  const isTerm2def = card.fcType==='term2def';
+  const frontLabel = isTerm2def?'용어':'뜻';
+  const backLabel  = isTerm2def?'뜻':'용어';
+  const frontContent = isTerm2def
+    ? `<div class="fc-term">${card.term}</div>`
+    : `<div class="fc-def">${card.def||''}</div>`;
+  const backContent = isTerm2def
+    ? `<div class="fc-def">${card.def||''}</div>`
+    : `<div class="fc-term">${card.term}</div>`;
+  const hintLabel = isTerm2def?'탭해서 뜻 확인':'탭해서 용어 확인';
 
   document.getElementById('quiz-header-wrap').innerHTML=`
     <div class="quiz-header">
@@ -987,13 +999,13 @@ function renderFlash(){
     <div class="fc-wrap">
       <div class="fc-inner" id="fc-inner">
         <div class="fc-face fc-front">
-          <div class="fc-label">용어</div>
-          <div class="fc-term">${card.term}</div>
-          <div class="fc-hint">탭해서 뜻 확인</div>
+          <div class="fc-label">${frontLabel}</div>
+          ${frontContent}
+          <div class="fc-hint">${hintLabel}</div>
         </div>
         <div class="fc-face fc-back">
-          <div class="fc-label">뜻</div>
-          <div class="fc-def">${card.def||''}</div>
+          <div class="fc-label">${backLabel}</div>
+          ${backContent}
         </div>
       </div>
     </div>
@@ -1004,7 +1016,6 @@ function renderFlash(){
     <div style="text-align:center;font-size:13px;color:var(--gray3);padding:4px 0">카드를 탭하면 뒤집힙니다</div>
   `;
 
-  // 카드 탭 → 뒤집기
   const inner = document.getElementById('fc-inner');
   inner.addEventListener('click',()=>{
     if(FS.flipped) return;
@@ -1013,15 +1024,12 @@ function renderFlash(){
     document.getElementById('fc-btns').style.display='flex';
   });
 
-  // 알았어요
   document.getElementById('fc-yes').addEventListener('click',()=>{
     FS.know++;
     nextFlash(true);
   });
-  // 몰랐어요
   document.getElementById('fc-no').addEventListener('click',()=>{
     FS.dontknow++;
-    // 틀린 문제 저장
     const wrongMap = lsGet(LS.wrongTerms)||{};
     wrongMap[card.term] = true;
     lsSet(LS.wrongTerms, wrongMap);
