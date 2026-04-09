@@ -1051,12 +1051,7 @@ function pickAnswer(choice){
     }
   });
 
-  // 피드백 카드 숨김 (오답일 때만 정답 용어를 작게 표시)
-  const fb=document.getElementById('feedback');
-  if(!ok){
-    fb.classList.add('open');
-    fb.innerHTML=`<div class="feedback-answer" style="margin-bottom:0">정답: ${q.term}</div>`;
-  }
+  // 피드백 카드 사용 안 함 - O/X로만 표시
   document.getElementById('next-btn').classList.add('open');
   renderQuizHeader();
 }
