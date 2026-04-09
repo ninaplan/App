@@ -237,11 +237,11 @@ input{font-family:inherit}
 }
 .choice-btn:active:not([disabled]){background:var(--gray1)}
 .choice-num{
-  font-size:15px;font-weight:800;color:var(--gray4);flex-shrink:0;width:20px;text-align:center
+  font-size:15px;font-weight:800;color:var(--gray4);flex-shrink:0;width:22px;text-align:center
 }
-.choice-btn.correct .choice-num{color:#444}
-.choice-btn.wrong .choice-num{color:#999}
-.choice-btn.correct{background:#f0f7f0;border-color:#666}
+.choice-btn.correct .choice-num{color:#2a6a2a;font-size:20px}
+.choice-btn.wrong .choice-num{color:#aa3333;font-size:20px}
+.choice-btn.correct{background:#f0f7f0;border-color:#555}
 .choice-btn.wrong{background:#fdf0f0;border-color:#aaa}
 .choice-btn.dim{opacity:.3}
 
@@ -1027,7 +1027,6 @@ function pickAnswer(choice){
   if(ok) QS.score++;
   else {
     QS.wrong.push(q);
-    // 틀린 문제 저장
     const wrongMap = lsGet(LS.wrongTerms)||{};
     wrongMap[q.term] = true;
     lsSet(LS.wrongTerms, wrongMap);
@@ -1035,17 +1034,29 @@ function pickAnswer(choice){
 
   document.querySelectorAll('.choice-btn').forEach(b=>{
     b.disabled=true;
-    if(b.dataset.choice===q.answer) b.classList.add('correct');
-    else if(b.dataset.choice===choice) b.classList.add('wrong');
-    else b.classList.add('dim');
+    const isAnswer = b.dataset.choice===q.answer;
+    const isChosen = b.dataset.choice===choice;
+    if(isAnswer){
+      b.classList.add('correct');
+      // 정답 버튼에 O 표시
+      const num = b.querySelector('.choice-num');
+      if(num) num.textContent='O';
+    } else if(isChosen){
+      b.classList.add('wrong');
+      // 내가 선택한 오답에 X 표시
+      const num = b.querySelector('.choice-num');
+      if(num) num.textContent='X';
+    } else {
+      b.classList.add('dim');
+    }
   });
 
+  // 피드백 카드 숨김 (오답일 때만 정답 용어를 작게 표시)
   const fb=document.getElementById('feedback');
-  fb.classList.add('open');
-  fb.innerHTML=`
-    <div class="feedback-result ${ok?'ok':'ng'}">${ok?'정답':'오답'}</div>
-    ${ok?'':'<div class="feedback-answer">정답: '+q.term+'</div>'}
-  `;
+  if(!ok){
+    fb.classList.add('open');
+    fb.innerHTML=`<div class="feedback-answer" style="margin-bottom:0">정답: ${q.term}</div>`;
+  }
   document.getElementById('next-btn').classList.add('open');
   renderQuizHeader();
 }
