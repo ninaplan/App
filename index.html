@@ -878,7 +878,7 @@ function renderQuizHome(){
       ${canQuiz?'퀴즈 시작 (랜덤 10개)':'문제가 부족합니다 (최소 4개)'}
     </button>
     <button class="start-quiz-btn" id="start-flash-btn" ${canQuiz?'':'disabled'} style="background:var(--gray5)">
-      ${canQuiz?'플래시카드 시작 (20장)':'문제가 부족합니다 (최소 4개)'}
+      ${canQuiz?'플래시카드 시작 (10장)':'문제가 부족합니다 (최소 4개)'}
     </button>
   </div>
   <div style="padding:14px 4px 0;font-size:14px;color:var(--gray4);line-height:1.8;text-align:center">
@@ -1075,7 +1075,7 @@ function startFlash(){
   if(s.quizMode==='studied') pool = STUDY_DATA.filter(t=>p[t.term]);
   else if(s.quizMode==='wrong') pool = STUDY_DATA.filter(t=>wrongMap[t.term]);
   else pool = [...STUDY_DATA];
-  pool = shuffle(pool).slice(0,20);
+  pool = shuffle(pool).slice(0,10);
   // 혼합이면 카드마다 랜덤으로 유형 섞기
   const cards = pool.map((t,i)=>{
     let type;
