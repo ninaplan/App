@@ -654,7 +654,7 @@ function renderLearn(){
         <div class="fc-inner" id="lfc-inner">
           <div class="fc-face fc-front">
             <div class="fc-label">뜻</div>
-            <div class="fc-def" style="font-size:18px;line-height:1.8">${day.terms[0]?day.terms[0].def||'':''}</div>
+            <div class="fc-def" style="font-size:18px;line-height:1.8">${day.terms[0]?(day.terms[0].defs&&day.terms[0].defs.length>0?day.terms[0].defs[Math.floor(Math.random()*day.terms[0].defs.length)]:day.terms[0].def||''):''}</div>
             <div class="fc-hint">탭해서 용어 확인</div>
           </div>
           <div class="fc-face fc-back">
@@ -740,7 +740,7 @@ function renderLearn(){
       const inner = document.getElementById('lfc-inner');
       if(!inner) return;
       inner.classList.remove('flipped');
-      inner.querySelector('.fc-front .fc-def').textContent = t.def||'';
+      inner.querySelector('.fc-front .fc-def').textContent = (t.defs&&t.defs.length>0)?t.defs[Math.floor(Math.random()*t.defs.length)]:(t.def||'');
       inner.querySelector('.fc-back .fc-term').textContent = t.term;
       const dictBtn = inner.querySelector('.lfc-dict-btn');
       if(dictBtn) dictBtn.dataset.dict = t.term;
@@ -911,20 +911,45 @@ function shuffle(arr){
 
 function maskTerm(text, term){
   if(!text||!term) return text||'';
-  let t = term.split('(')[0].trim();
-  return text.split(t).join('___').split(term).join('___');
+  let result = text;
+  // 마스크 문자
+  const MASK = '●●●';
+  // 1. 전체 용어명
+  result = result.split(term).join(MASK);
+  // 2. 괄호 앞 한글 부분 (예: "가산금리(스프레드)" → "가산금리" 부분)
+  const korPart = term.split('(')[0].trim();
+  if(korPart && korPart !== term && korPart.length > 1){
+    result = result.split(korPart).join(MASK);
+  }
+  // 3. 괄호 안 영문 부분 (예: "GDP", "BIS" 등)
+  const engMatch = term.match(/\(([^)]+)\)/);
+  if(engMatch && engMatch[1].length > 1){
+    result = result.split(engMatch[1]).join(MASK);
+  }
+  // 4. 슬래시로 분리된 복합 용어 각각 마스킹
+  if(term.includes('/')){
+    term.split('/').forEach(part=>{
+      const p = part.trim();
+      if(p.length > 1) result = result.split(p).join(MASK);
+    });
+  }
+  return result;
 }
 
 function makeQuestion(t, pool, type){
   const wrong3 = shuffle(pool.filter(x=>x.term!==t.term)).slice(0,3);
+  // defs 배열이 있으면 랜덤 선택, 없으면 기존 def 사용
+  const getDef = (item) => {
+    if(item.defs && item.defs.length>0) return item.defs[Math.floor(Math.random()*item.defs.length)];
+    return item.def||'';
+  };
   if(type==='term2def'){
-    // 용어 보여주고 뜻 맞추기 — 선택지: 요약 정의 첫 줄
-    const correct = t.def.split('\n')[0];
-    const choices = shuffle([correct, ...wrong3.map(w=>w.def.split('\n')[0])]);
+    const correct = getDef(t);
+    const choices = shuffle([correct, ...wrong3.map(w=>getDef(w))]);
     return {type:'term2def', term:t.term, question:t.term, hint:'이 용어의 뜻은?', choices, answer:correct, fullDef:t.def};
   } else {
-    // 뜻 보여주고 용어 맞추기 — 마스킹 처리
-    const maskedDef = maskTerm(t.def.split('\n')[0], t.term);
+    const defText = getDef(t);
+    const maskedDef = maskTerm(defText, t.term);
     const choices = shuffle([t.term, ...wrong3.map(w=>w.term)]);
     return {type:'def2term', term:t.term, question:maskedDef, hint:'이 설명에 해당하는 용어는?', choices, answer:t.term, fullDef:t.def};
   }
@@ -1064,11 +1089,12 @@ function renderFlash(){
   const isTerm2def = card.fcType==='term2def';
   const frontLabel = isTerm2def?'용어':'뜻';
   const backLabel  = isTerm2def?'뜻':'용어';
+  const randDef = (card.defs&&card.defs.length>0)?card.defs[Math.floor(Math.random()*card.defs.length)]:(card.def||'');
   const frontContent = isTerm2def
     ? `<div class="fc-term">${card.term}</div>`
-    : `<div class="fc-def">${card.def||''}</div>`;
+    : `<div class="fc-def">${randDef}</div>`;
   const backContent = isTerm2def
-    ? `<div class="fc-def">${card.def||''}</div>`
+    ? `<div class="fc-def">${randDef}</div>`
     : `<div class="fc-term">${card.term}</div>`;
   const hintLabel = isTerm2def?'탭해서 뜻 확인':'탭해서 용어 확인';
 
