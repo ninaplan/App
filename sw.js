@@ -1,4 +1,4 @@
-const CACHE = 'econ-v24';
+const CACHE = 'econ-v25';
 const FILES = ['./index.html', './data.json'];
 
 self.addEventListener('install', e => {
