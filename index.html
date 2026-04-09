@@ -1024,8 +1024,15 @@ function pickAnswer(choice){
   QS.answered=true;
   const q=QS.questions[QS.cur];
   const ok=(choice===q.answer);
-  if(ok) QS.score++;
-  else {
+  if(ok){
+    QS.score++;
+    // 맞췄으면 틀린문제 목록에서 제거
+    const wrongMap = lsGet(LS.wrongTerms)||{};
+    if(wrongMap[q.term]){
+      delete wrongMap[q.term];
+      lsSet(LS.wrongTerms, wrongMap);
+    }
+  } else {
     QS.wrong.push(q);
     const wrongMap = lsGet(LS.wrongTerms)||{};
     wrongMap[q.term] = true;
@@ -1146,6 +1153,12 @@ function renderFlash(){
 
   document.getElementById('fc-yes').addEventListener('click',()=>{
     FS.know++;
+    // 알았어요 누르면 틀린문제 목록에서 제거
+    const wrongMap = lsGet(LS.wrongTerms)||{};
+    if(wrongMap[card.term]){
+      delete wrongMap[card.term];
+      lsSet(LS.wrongTerms, wrongMap);
+    }
     nextFlash(true);
   });
   document.getElementById('fc-no').addEventListener('click',()=>{
